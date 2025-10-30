@@ -1,0 +1,30 @@
+services:
+  # 1. Serviço da nossa API Python/FastAPI
+  api:
+    build: .  # Constrói a imagem usando o Dockerfile na pasta atual
+    ports:
+      - "8000:8000"  # Mapeia a porta 8000 do container para a porta 8000 da sua máquina
+    volumes:
+      - ./app:/code/app  # Espelha sua pasta 'app' local para dentro do container
+                         # Isso permite que o --reload funcione!
+    environment:
+      # Passa a URL do banco para a nossa API
+      - DATABASE_URL=postgresql+asyncpg://user:password@db/scava-db
+    depends_on:
+      - db  # Diz para a API só iniciar DEPOIS que o serviço 'db' estiver pronto
+
+  # 2. Serviço do Banco de Dados PostgreSQL
+  db:
+    image: postgres:15-alpine  # Usa uma imagem oficial e leve do Postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/  # Garante que os dados do banco sobrevivam
+                                                # se o container for recriado
+    environment:
+      # Define o usuário, senha e nome do banco
+      # Note que eles são os mesmos da DATABASE_URL acima
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=scava-db
+
+volumes:
+  postgres_data:  # Define o volume que o 'db' usa
